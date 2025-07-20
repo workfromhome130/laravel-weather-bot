@@ -2,10 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\WeatherBotData;
+use GuzzleHttp\Client;
 use Illuminate\Console\Command;
 use Prism\Prism\Enums\Provider;
 use Prism\Prism\Facades\Tool;
-use GuzzleHttp\Client;
 use Prism\Prism\Prism;
 
 class WeatherBot extends Command
@@ -36,30 +37,39 @@ class WeatherBot extends Command
         if (strtolower(trim($input)) === 'exit')
             return $this->info('Goodbye! Have a great day!');
 
+        $ip = $this->getClientIP();
+
+        if (!WeatherBotData::where('ip', $ip)->exists()) {
+            $location = $this->ask('Where are you located?');
+            WeatherBotData::create([
+                'ip' => $ip,
+                'location' => $location,
+            ]);
+        }
+        $location = WeatherBotData::where('ip', $ip)->first()->location;
+
         $weatherTool = Tool::as('weather')
             ->for('Get current weather conditions')
             ->withStringParameter('city', 'The city to get weather for')
             ->using(function (string $city): string {
+                // Get coordinates for the city
+                $coordinates = $this->getCityCoordinates($city);
 
-                 // Get coordinates for the city
-                 $coordinates = $this->getCityCoordinates($city);
+                if (!$coordinates) {
+                    return "Sorry, I couldn't find the city \"{$city}\".";
+                }
 
-                 if (!$coordinates) {
-                     return "Sorry, I couldn't find the city \"{$city}\".";
-                 }
- 
-                 // Get weather forecast using coordinates
-                 $weatherData = $this->getWeatherForecast($coordinates['lat'], $coordinates['lon']);
- 
-                 if (!$weatherData) {
-                     return "Sorry, I couldn't retrieve the weather for {$coordinates['cityName']}.";
-                 }
- 
-                 $weather = $weatherData['current_weather'];
-                 $temperature = $weather['temperature'];
- 
-                 return "The weather in {$coordinates['cityName']} is currently {$temperature}°C.";
- 
+                // Get weather forecast using coordinates
+                $weatherData = $this->getWeatherForecast($coordinates['lat'], $coordinates['lon']);
+
+                if (!$weatherData) {
+                    return "Sorry, I couldn't retrieve the weather for {$coordinates['cityName']}.";
+                }
+
+                $weather = $weatherData['current_weather'];
+                $temperature = $weather['temperature'];
+
+                return "The weather in {$coordinates['cityName']} is currently {$temperature}°C.";
             });
 
         $response = Prism::text()
@@ -72,7 +82,7 @@ class WeatherBot extends Command
                 If someone asks about anything other than weather (like math, general knowledge, or other topics), politely respond with:
                 "Sorry, I am only a weather bot and can't help with that. I can only provide weather information. Please ask me about weather conditions, forecasts, or weather-related topics."
 
-                User question: {$input}
+                User question: {$input} {$location}
                 PROMPT)
             ->withTools([$weatherTool])
             ->asText();
@@ -148,6 +158,33 @@ class WeatherBot extends Command
             return $weatherData;
         } catch (\Exception $e) {
             return null;
+        }
+    }
+
+    /**
+     * Get the client's real IP address using an external API
+     *
+     * @return string
+     */
+    private function getClientIP(): string
+    {
+        $http = new \GuzzleHttp\Client();
+
+        try {
+            $response = $http->get('https://api.ipify.org?format=json');
+            $data = json_decode($response->getBody(), true);
+
+            return $data['ip'] ?? 'Unknown';
+        } catch (\Exception $e) {
+            // Fallback to alternative API
+            try {
+                $response = $http->get('https://httpbin.org/ip');
+                $data = json_decode($response->getBody(), true);
+
+                return $data['origin'] ?? 'Unknown';
+            } catch (\Exception $e) {
+                return 'Unknown';
+            }
         }
     }
 
