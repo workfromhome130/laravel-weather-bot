@@ -3,6 +3,9 @@
 
 A simple AI Weather Bot built with Laravel, Prism, OpenAI and Weather/IP APIs.
 
+<div style="position: relative; padding-bottom: 57.93991416309014%; height: 0;"><iframe src="https://www.loom.com/embed/1c99468fc8754b59b7db991592568a99?sid=7ab7b229-7569-41b6-8e38-efd9ebb0552f" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
+
 ### How to setup
 
 1. Clone  repository  `git clone https://github.com/aligajani/weather-bot.git`
