@@ -29,6 +29,10 @@ DB_USERNAME=[username]
 DB_PASSWORD=[password]
 ```
 
+### Feature Tests
+
+![Feature Tests Screenshot](./Tests.png)
+
 ### Run the CLI
 
 To run the AI Weather Bot, please go to the terminal and run `php artisan app:weather-bot`. Here, you can ask the question, [What is the weather in my location?] If the location is not persisted already, it will ask you for the location and return the weather in Celcius. Next time you run the same Artisan command, you can simply ask, [What is weather like in my area] and it will return the weather swiftly. 
