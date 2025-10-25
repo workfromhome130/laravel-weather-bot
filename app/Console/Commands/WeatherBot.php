@@ -34,8 +34,9 @@ class WeatherBot extends Command
 
         $input = $this->ask('How can I help you? (Type "exit" to quit)');
 
-        if (strtolower(trim($input)) === 'exit')
-            return $this->info('Goodbye! Have a great day!');
+        if (strtolower(trim($input)) === 'exit') {
+            return $this->info('Good-bye! Have a great day!');
+        }
 
         $ip = $this->getClientIP();
 
@@ -69,7 +70,7 @@ class WeatherBot extends Command
                 $weather = $weatherData['current_weather'];
                 $temperature = $weather['temperature'];
 
-                return "The weather in {$coordinates['cityName']} is currently {$temperature}°C.";
+                return "The weather (temperature) in {$coordinates['cityName']} is currently {$temperature}°C.";
             });
 
         $response = Prism::text()
@@ -98,7 +99,8 @@ class WeatherBot extends Command
      */
     private function getCityCoordinates(string $city): ?array
     {
-        $http = new \GuzzleHttp\Client();
+        // $http = new \GuzzleHttp\Client();
+        $http = new Client();
 
         try {
             $geoResponse = $http->get('https://geocoding-api.open-meteo.com/v1/search', [
@@ -121,7 +123,7 @@ class WeatherBot extends Command
             return [
                 'lat' => $result['latitude'],
                 'lon' => $result['longitude'],
-                'cityName' => $result['name']
+                'cityName' => $result['name'],
             ];
         } catch (\Exception $e) {
             return null;
@@ -168,7 +170,8 @@ class WeatherBot extends Command
      */
     private function getClientIP(): string
     {
-        $http = new \GuzzleHttp\Client();
+        // $http = new \GuzzleHttp\Client();
+        $http = new Client();
 
         try {
             $response = $http->get('https://api.ipify.org?format=json');
@@ -193,7 +196,7 @@ class WeatherBot extends Command
      */
     private function welcomeUser()
     {
-        $this->info('🌤️  Welcome to WeatherBot! 🌤️');
+        $this->info('🌤️   Welcome to WeatherBot! 🌤️');
         $this->line('');
     }
 }
